@@ -47,6 +47,10 @@ angular.module(MODULE_NAME, [])
         return el.ownerDocument.defaultView.pageYOffset;
       }
 
+      function isVisible(element) {
+        return element[0].offsetParent !== null;
+      }
+
       function offsetTop(element) {
         if (!(!element[0].getBoundingClientRect || element.css('none'))) {
           return element[0].getBoundingClientRect().top + pageYOffset(element);
@@ -61,26 +65,31 @@ angular.module(MODULE_NAME, [])
       // with a boolean that is set to true when the function is
       // called in order to throttle the function call.
       function defaultHandler() {
-        let containerBottom;
-        let elementBottom;
-        if (container === windowElement) {
-          containerBottom = height(container) + pageYOffset(container[0].document.documentElement);
-          elementBottom = offsetTop(elem) + height(elem);
-        } else {
-          containerBottom = height(container);
-          let containerTopOffset = 0;
-          if (offsetTop(container) !== undefined) {
-            containerTopOffset = offsetTop(container);
+        let shouldScroll = false;
+
+        if (isVisible(elem)) {
+          let containerBottom;
+          let elementBottom;
+          if (container === windowElement) {
+            containerBottom = height(container) +
+                pageYOffset(container[0].document.documentElement);
+            elementBottom = offsetTop(elem) + height(elem);
+          } else {
+            containerBottom = height(container);
+            let containerTopOffset = 0;
+            if (offsetTop(container) !== undefined) {
+              containerTopOffset = offsetTop(container);
+            }
+            elementBottom = (offsetTop(elem) - containerTopOffset) + height(elem);
           }
-          elementBottom = (offsetTop(elem) - containerTopOffset) + height(elem);
-        }
 
-        if (useDocumentBottom) {
-          elementBottom = height((elem[0].ownerDocument || elem[0].document).documentElement);
-        }
+          if (useDocumentBottom) {
+            elementBottom = height((elem[0].ownerDocument || elem[0].document).documentElement);
+          }
 
-        const remaining = elementBottom - containerBottom;
-        const shouldScroll = remaining <= (height(container) * scrollDistance) + 1;
+          const remaining = elementBottom - containerBottom;
+          shouldScroll = remaining <= (height(container) * scrollDistance) + 1;
+        }
 
         if (shouldScroll) {
           checkWhenEnabled = true;

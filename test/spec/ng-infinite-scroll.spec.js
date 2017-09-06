@@ -250,6 +250,13 @@ function describeTests(angularVersion, container) {
       }
       );
 
+      it('do not trigger when element is invisible', function () {
+        replaceIndexFile("style='display: none;'", throttle);
+        browser.get(pathToDocument);
+        return expect(getItems().count()).toBe(0);
+      }
+      );
+
       return describe('with an event handler', () =>
         it('calls the event handler on an event', retry(16, function () {
           replaceIndexFile("infinite-scroll-listen-for-event='anEvent'", throttle);
